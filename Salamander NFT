@@ -1,0 +1,83 @@
+{
+  "name": "Mystic Salamander #001",
+  "description": "A rare blue salamander with glowing red spots, found in the enchanted forests of Web3.",
+  "image": "ipfs://QmYourImageHashHere",
+  "attributes": [
+    { "trait_type": "Color", "value": "Blue" },
+    { "trait_type": "Pattern", "value": "Red Spots" },
+    { "trait_type": "Rarity", "value": "Rare" }
+  ]
+}
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+
+contract SalamanderNFT is ERC721 {
+    using Counters for Counters.Counter;
+    Counters.Counter private _tokenIds;
+
+    mapping(uint256 => string) private _tokenURIs;
+
+    constructor() ERC721("SalamanderNFT", "SLM") {}
+
+    function mintNFT(address recipient, string memory tokenURI) public returns (uint256) {
+        _tokenIds.increment();
+        uint256 newTokenId = _tokenIds.current();
+        _mint(recipient, newTokenId);
+        _setTokenURI(newTokenId, tokenURI);
+        return newTokenId;
+    }
+
+    function _setTokenURI(uint256 tokenId, string memory _tokenURI) internal virtual {
+        _tokenURIs[tokenId] = _tokenURI;
+    }
+
+    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+        require(_exists(tokenId), "ERC721: URI query for nonexistent token");
+        return _tokenURIs[tokenId];
+    }
+}
+
+require('@nomicfoundation/hardhat-toolbox');
+module.exports = {
+  solidity: "0.8.0",
+  networks: {
+    sepolia: {
+      url: "YOUR_ALCHEMY_OR_INFURA_URL",
+      accounts: ["YOUR_PRIVATE_KEY"]
+    }
+  }
+};
+
+const hre = require("hardhat");
+
+async function main() {
+  const SalamanderNFT = await hre.ethers.getContractFactory("SalamanderNFT");
+  const salamanderNFT = await SalamanderNFT.deploy();
+  await salamanderNFT.deployed();
+  console.log("SalamanderNFT deployed to:", salamanderNFT.address);
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
+
+const { ethers } = require("ethers");
+
+async function mintNFT() {
+  const provider = new ethers.providers.JsonRpcProvider("YOUR_ALCHEMY_OR_INFURA_URL");
+  const wallet = new ethers.Wallet("YOUR_PRIVATE_KEY", provider);
+  const contract = new ethers.Contract("YOUR_CONTRACT_ADDRESS", ["YOUR_ABI"], wallet);
+  const tx = await contract.mintNFT(wallet.address, "ipfs://QmMetadataHashHere");
+  await tx.wait();
+  console.log("NFT minted!");
+}
+
+mintNFT();
+
+npx hardhat verify --network sepolia YOUR_CONTRACT_ADDRESS
+
